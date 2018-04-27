@@ -10,3 +10,15 @@
   background: #ecaa;
   border: 1px solid #8f8f8f;
 }
+
+.flex {
+  display: flex;
+}
+
+.no-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scroll-x {
+  overflow: hidden !important;
+}
