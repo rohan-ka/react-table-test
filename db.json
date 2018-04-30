@@ -6,11 +6,11 @@
     ],
     "rows": [
       "Country Code",
-      "Provider ID"
-    ],
-    "columns": [
+      "Provider ID",
       "Customer Name",
       "Cookie Flag"
+    ],
+    "columns": [
     ],
     "colUnique": [
       {

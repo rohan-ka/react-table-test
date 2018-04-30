@@ -3,6 +3,7 @@ import { withState, withHandlers, compose } from 'recompose';
 import axios from 'axios';
 import { AutoSizer, Grid, ScrollSync, MultiGrid } from 'react-virtualized';
 import * as R from 'ramda';
+import cx from 'classnames';
 import './App.css';
 
 window.R = R;
@@ -19,7 +20,9 @@ const groupChildren = (rows, data, metrics = [], withTotals = false) => {
 
     let totals = [];
     if(withTotals && data.length > 1) {
-      totals = totals.concat({label: '__totals', count: 0,  children: null, total: true, level: rows.length - level});
+      totals = totals.concat(
+        {label: '__totals', count: 0,  children: null, total: true, level: rows.length - level}
+      );
     }
 
     let grouped =  data.reduce((acc, c ) => {
@@ -179,18 +182,26 @@ class App extends Component {
     const columnOffset = columnIndex - rows.length;
 
     if(!hasColumns && rowIndex === 0) {
-      return <div className="grid-cell" key={key} style={style}>{rows.concat(metrics)[columnIndex]}</div>
+      return <div className="grid-header-cell" key={key} style={style}>{rows.concat(metrics)[columnIndex]}</div>
     }
 
     if(rowOffset < 0) {
         if(columnOffset < 0 && rowIndex === 0) {
-          return <div className="grid-cell" key={key} style={{...style, height: style.height * headerCount}}>{rows[columnIndex]}</div>
+          return (
+            <div
+              className="grid-cell"
+              key={key}
+              style={{...style, height: style.height * headerCount, backgroundColor: '#FAFAFA' }}
+            >
+              {rows[columnIndex]}
+            </div>
+          );
         }
         if(columnOffset >= 0) {
           const item = colsData[columnIndex - rows.length][rowIndex];
 
           return  (!item || !item.root)  ? null : (
-            <div className="grid-cell" key={key} style={{...style, width: style.width * item.count}}>{item.label}</div>
+            <div className="grid-cell" key={key} style={{...style, width: style.width * item.count, backgroundColor: '#FAFAFA'}}>{item.label}</div>
           );
       }
       return null;
@@ -204,9 +215,10 @@ class App extends Component {
         return null;
       }
       if (item.total) {
-        return <div className='grid-cell' key={key} style={{...style, width: style.width * item.level}}> Total </div>
+        return <div className='grid-cell total-cell' key={key} style={{...style, width: style.width * item.level}}> Total </div>
       }
-      return (<div className='grid-cell' key={key} style={{...style, height: style.height * item.count}}>{item.label}</div>);
+
+      return (<div className="grid-cell" key={key} style={{...style, height: style.height * item.count}}>{item.label}</div>);
     }
 
     const withoutMetrics = R.reject(
@@ -216,13 +228,6 @@ class App extends Component {
       )
     );
 
-    const trimTotalsPath = (path) => {
-      if(path.includes('__totals')) {
-        return path.slice(0, path.indexOf('__totals') + 1);
-      }
-
-      return path;
-    }
     const value = R.compose(
       R.path(R.__, parsedData),
       R.append(metrics[columnOffset % metrics.length]),
@@ -232,7 +237,9 @@ class App extends Component {
         R.concat(R.__, withoutMetrics(colsData[columnOffset]))
       )
     );
-    return (<div className='grid-cell' key={key} style={{...style}}>{value(rowData[rowOffset])}</div>);
+    console.log(rowData[rowOffset]);
+    const className = cx('grid-cell', {'total-cell': R.pluck('label', rowData[rowOffset]).includes('__totals')});
+    return (<div className={className} key={key} style={{...style}}>{value(rowData[rowOffset])}</div>);
   }
 
   toggleShowTotals = (e) => {
@@ -252,25 +259,31 @@ class App extends Component {
     const cellHeight = 50, cellWidth = 150, tableHeight = window.innerHeight;
 
     return (
-      <div>
+      <div style={{height: '100%', display: 'flex', flexDirection: 'column'}}>
         <label>
           <input type="checkbox" checked={this.props.showTotals} onChange={this.toggleShowTotals} />
            Show Totals
         </label>
-        <MultiGrid
-          cellRenderer={this.renderCell}
-          columnWidth={cellWidth}
-          columnCount={columnCount}
-          rowCount={rowCount}
-          rowHeight={cellHeight}
-          width={1000}
-          height={tableHeight}
-          fixedColumnCount={rows.length}
-          fixedRowCount={headerCount}
-          enableFixedRowScroll
-          enableFixedColumnScroll
-          overscanIndicesGetter={this.indexGetter}
-        />
+        <label>
+          <input type="checkbox" checked={this.props.fixedCols} onChange={this.props.toggleFixedCols} />
+           Fix Cols
+        </label>
+        <div style={{display: 'flex', justifyContent: 'center'}}>
+          <MultiGrid
+            cellRenderer={this.renderCell}
+            columnWidth={cellWidth}
+            columnCount={columnCount}
+            rowCount={rowCount}
+            rowHeight={cellHeight}
+            width={703}
+            height={tableHeight}
+            fixedColumnCount={this.props.fixedCols ? rows.length : 0}
+            fixedRowCount={headerCount}
+            enableFixedRowScroll
+            enableFixedColumnScroll
+            overscanIndicesGetter={this.indexGetter}
+          />
+        </div>
       </div>
     );
   }
@@ -292,5 +305,6 @@ const withToggle = (name, defaultValue = false) => {
 }
 
 export default compose(
-  withToggle('showTotals')
+  withToggle('showTotals'),
+  withToggle('fixedCols'),
 )(App);

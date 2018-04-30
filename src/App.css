@@ -4,21 +4,29 @@
   bottom: 0;
   right: 0;
   left: 0;
+  background: #f5f5f5;
 }
 
 .grid-cell {
-  background: #ecaa;
-  border: 1px solid #8f8f8f;
+  background: #fff;
+}
+
+.grid-header-cell {
+  background: #fafafa;
+}
+
+.grid-cell {
+  border: 1px solid #c8cfdc;
+}
+
+.grid-header-cell {
+  border: 1px solid #c8cfdc;
+}
+
+.total-cell, .total-cell {
+  background: #f7f7f7;
 }
 
 .flex {
   display: flex;
-}
-
-.no-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scroll-x {
-  overflow: hidden !important;
 }
